@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SKY Weather App - Get current weather and 5-day forecast for any city">
+  <title>SKY Weather</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/weather-icons.min.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header with logo placeholder -->
+    <header class="app__header">
+      <div id="logo-placeholder" class="app__logo">
+        <img src="assets/images/skylogo.png" alt="SKY Logo">
+        <!-- <span class="app__logo-text">SKY</span> -->
+      </div>
+      
+      <!-- Search Component -->
+      <div class="search">
+        <input 
+          type="text" 
+          id="search-input" 
+          class="search__input" 
+          placeholder="Search for a city or country..."
+          autocomplete="off"
+          aria-label="Search for a city"
+        >
+        <div id="search-suggestions" class="search__suggestions" hidden></div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app__main">
+      
+      <!-- Loading State -->
+      <div id="loading" class="state state--loading" hidden>
+        <div class="skeleton"></div>
+      </div>
+
+      <!-- Error State -->
+      <div id="error" class="state state--error" hidden>
+        <p class="state__message"></p>
+      </div>
+
+      <!-- Weather Content -->
+      <section id="weather-content" class="weather" hidden>
+        
+        <!-- Current Weather -->
+        <div class="weather__current">
+          <div class="weather__location">
+            <h2 id="location-name" class="weather__city"></h2>
+            <p id="location-date" class="weather__date"></p>
+          </div>
+          <div class="weather__temp">
+            <i id="weather-icon" class="weather__icon wi"></i>
+            <span id="temp-value" class="weather__temp-value"></span>
+            <span class="weather__temp-unit">°C</span>
+          </div>
+          <p id="weather-description" class="weather__description"></p>
+          <div class="weather__details">
+            <div class="weather__detail">
+              <span>Humidity</span>
+              <span id="humidity-value"></span>
+            </div>
+            <div class="weather__detail">
+              <span>Wind</span>
+              <span id="wind-value"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5-Day Forecast -->
+        <div class="weather__forecast">
+          <h3 class="weather__forecast-title">5-Day Forecast</h3>
+          <div id="forecast-list" class="weather__forecast-list"></div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
