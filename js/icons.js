@@ -104,13 +104,24 @@ const ICONS = {
  * app doesn't have a dedicated icon for.
  */
 export function getWeatherIconKey(code, isDay = true) {
+  // Exact condition codes with a day/night variant.
   if (code === 800) return isDay ? 'clear-day' : 'clear-night';
   if (code === 801 || code === 802) return isDay ? 'partly-cloudy-day' : 'partly-cloudy-night';
-  if (code >= 803 && code <= 804) return 'cloudy';
-  if (code >= 200 && code < 300) return 'thunderstorm';
-  if (code >= 300 && code < 600) return 'rain';
-  if (code >= 600 && code < 700) return 'snow';
-  if (code >= 700 && code < 800) return 'mist';
+
+  // Remaining condition codes map to a single icon by inclusive range.
+  const ranges = [
+    [200, 299, 'thunderstorm'],
+    [300, 599, 'rain'],
+    [600, 699, 'snow'],
+    [700, 799, 'mist'],
+    [803, 804, 'cloudy']
+  ];
+
+  for (const [min, max, icon] of ranges) {
+    if (code >= min && code <= max) return icon;
+  }
+
+  // Default fallback for any unrecognized condition code.
   return 'cloudy';
 }
 
