@@ -2,85 +2,241 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SKY Weather App - Get current weather and 5-day forecast for any city">
-  <title>SKY Weather</title>
+
+  <!-- Responsive viewport -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <!-- Primary SEO -->
+  <title>SKY Weather — ANYTIME ANYWHERE</title>
+  <meta
+    name="description"
+    content="SKY is a fast, simple weather app for checking current weather conditions and a 5-day forecast for cities around the world."
+  >
+  <meta
+    name="keywords"
+    content="weather, weather app, forecast, 5-day forecast, current weather, city weather, SKY"
+  >
+  <meta name="author" content="SKY">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- Canonical URL -->
+  <link
+    rel="canonical"
+    href="https://sky-pple.vercel.app"
+  >
+
+  <!-- Favicon -->
+  <link
+    rel="icon"
+    type="image/png"
+    href="https://res.cloudinary.com/paihc5qx/image/upload/v1788009494/favicon_uwgql3.png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="https://res.cloudinary.com/paihc5qx/image/upload/v1788009494/favicon_uwgql3.png"
+  >
+
+  <!-- Styles -->
   <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/weather-icons.min.css">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta
+    property="og:title"
+    content="SKY Weather — Current Weather & 5-Day Forecast"
+  >
+  <meta
+    property="og:description"
+    content="Check current weather conditions and a 5-day forecast for cities around the world with SKY."
+  >
+  <meta
+    property="og:image"
+    content="https://res.cloudinary.com/paihc5qx/image/upload/v1788009497/sky_uyrac2.png"
+  >
+  <meta
+    property="og:image:alt"
+    content="SKY Weather App"
+  >
+  <meta
+    property="og:url"
+    content="https://YOUR-SKY-DOMAIN.com/"
+  >
+  <meta property="og:site_name" content="SKY Weather">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary">
+  <meta
+    name="twitter:title"
+    content="SKY Weather — Anytime Anywhere"
+  >
+  <meta
+    name="twitter:description"
+    content="Check current weather conditions and a 5-day forecast for cities around the world with SKY."
+  >
+  <meta
+    name="twitter:image"
+    content="https://res.cloudinary.com/paihc5qx/image/upload/v1788009497/sky_uyrac2.png"
+  >
+  <meta
+    name="twitter:image:alt"
+    content="SKY Weather App"
+  >
 </head>
+
 <body>
   <div class="app">
-    <!-- Header with logo placeholder -->
+
+    <!-- Accessible page heading -->
+    <h1 class="sr-only">SKY Weather</h1>
+
+    <!-- Header -->
     <header class="app__header">
       <div id="logo-placeholder" class="app__logo">
-        <img src="assets/images/skylogo.png" alt="SKY Logo">
-        <!-- <span class="app__logo-text">SKY</span> -->
+        <img
+          src="https://res.cloudinary.com/paihc5qx/image/upload/v1788009497/sky_uyrac2.png"
+          alt="SKY Weather"
+        >
       </div>
-      
-      <!-- Search Component -->
+
+      <!-- Search -->
       <div class="search">
-        <input 
-          type="text" 
-          id="search-input" 
-          class="search__input" 
+        <input
+          type="text"
+          id="search-input"
+          class="search__input"
           placeholder="Search for a city or country..."
           autocomplete="off"
           aria-label="Search for a city"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="search-suggestions"
+          aria-autocomplete="list"
         >
-        <div id="search-suggestions" class="search__suggestions" hidden></div>
+
+        <div
+          id="search-suggestions"
+          class="search__suggestions"
+          role="listbox"
+          aria-label="City suggestions"
+          hidden
+        ></div>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="app__main">
-      
+
       <!-- Loading State -->
-      <div id="loading" class="state state--loading" hidden>
+      <div
+        id="loading"
+        class="state state--loading"
+        role="status"
+        aria-live="polite"
+        hidden
+      >
+        <span class="sr-only">Loading weather…</span>
         <div class="skeleton"></div>
       </div>
 
       <!-- Error State -->
-      <div id="error" class="state state--error" hidden>
+      <div
+        id="error"
+        class="state state--error"
+        role="status"
+        aria-live="polite"
+        hidden
+      >
         <p class="state__message"></p>
       </div>
 
       <!-- Weather Content -->
-      <section id="weather-content" class="weather" hidden>
-        
+      <section
+        id="weather-content"
+        class="weather"
+        aria-label="Weather information"
+        hidden
+      >
+
         <!-- Current Weather -->
         <div class="weather__current">
+
           <div class="weather__location">
-            <h2 id="location-name" class="weather__city"></h2>
-            <p id="location-date" class="weather__date"></p>
+            <h2
+              id="location-name"
+              class="weather__city"
+            ></h2>
+
+            <p
+              id="location-date"
+              class="weather__date"
+            ></p>
           </div>
+
           <div class="weather__temp">
-            <i id="weather-icon" class="weather__icon wi"></i>
-            <span id="temp-value" class="weather__temp-value"></span>
-            <span class="weather__temp-unit">°C</span>
+            <i
+              id="weather-icon"
+              class="weather__icon"
+              aria-hidden="true"
+            ></i>
+
+            <span
+              id="temp-value"
+              class="weather__temp-value"
+            ></span>
+
+            <span
+              id="temp-unit"
+              class="weather__temp-unit"
+            ></span>
           </div>
-          <p id="weather-description" class="weather__description"></p>
+
+          <p
+            id="weather-description"
+            class="weather__description"
+          ></p>
+
           <div class="weather__details">
+
             <div class="weather__detail">
               <span>Humidity</span>
               <span id="humidity-value"></span>
             </div>
+
             <div class="weather__detail">
               <span>Wind</span>
               <span id="wind-value"></span>
             </div>
+
           </div>
         </div>
 
         <!-- 5-Day Forecast -->
         <div class="weather__forecast">
-          <h3 class="weather__forecast-title">5-Day Forecast</h3>
-          <div id="forecast-list" class="weather__forecast-list"></div>
+
+          <h3 class="weather__forecast-title">
+            5-Day Forecast
+          </h3>
+
+          <div
+            id="forecast-list"
+            class="weather__forecast-list"
+          ></div>
+
         </div>
 
       </section>
     </main>
   </div>
 
-  <script type="module" src="./js/app.js"></script>
+  <!-- Application -->
+  <script
+    type="module"
+    src="./js/app.js"
+  ></script>
 </body>
 </html>

@@ -172,6 +172,12 @@ body {
   background: rgba(56, 189, 248, 0.12);
 }
 
+.search__suggestion--message {
+  padding: 14px 18px;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
 /* ===== Weather Content ===== */
 .weather__current {
   position: relative;
@@ -234,7 +240,9 @@ body {
 }
 
 .weather__icon {
-  font-size: 5.5rem;
+  display: inline-flex;
+  width: 5.5rem;
+  height: 5.5rem;
 
   color: var(--accent);
 
@@ -242,16 +250,28 @@ body {
     drop-shadow(0 0 18px rgba(56, 189, 248, 0.25));
 }
 
+.weather__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
 .weather__forecast-icon {
-  font-size: 2.3rem;
+  display: flex;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+
   color: var(--accent);
 
-  margin: 12px 0;
-
-  display: block;
+  margin: 12px auto;
 
   filter:
     drop-shadow(0 0 10px rgba(56, 189, 248, 0.25));
+}
+
+.weather__forecast-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .weather__temp-value {
@@ -516,4 +536,16 @@ body {
 /* ===== Utility ===== */
 [hidden] {
   display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

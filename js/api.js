@@ -34,6 +34,11 @@ class WeatherAPI {
     return this._fetch(url);
   }
 
+  async getForecastByCity(city) {
+    const url = `${this.baseUrl}/forecast?q=${encodeURIComponent(city)}&units=${CONFIG.UNITS}&lang=${CONFIG.LANG}&appid=${this.apiKey}`;
+    return this._fetch(url);
+  }
+
   async getCurrentWeatherByCoords(lat, lon) {
     const url = `${this.baseUrl}/weather?lat=${lat}&lon=${lon}&units=${CONFIG.UNITS}&lang=${CONFIG.LANG}&appid=${this.apiKey}`;
     return this._fetch(url);
