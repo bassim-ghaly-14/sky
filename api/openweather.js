@@ -51,9 +51,12 @@ export default async function handler(req, res) {
 
   params.set('appid', apiKey);
 
-  const base = path.startsWith('geo/')
-    ? 'https://api.openweathermap.org/geo/1.0'
-    : 'https://api.openweathermap.org/data/2.5';
+  // `path` already includes its full API prefix (e.g. "data/2.5/weather"
+  // or "geo/1.0/direct"), so the base must NOT repeat that prefix —
+  // doing so produced duplicated paths like /geo/1.0/geo/1.0/direct,
+  // which OpenWeatherMap answers with an openresty 404 that we relayed
+  // to the browser as a confusing production 404.
+  const base = 'https://api.openweathermap.org';
 
   try {
     const response = await fetch(`${base}/${path}?${params.toString()}`);
