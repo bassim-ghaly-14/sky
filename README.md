@@ -6,7 +6,7 @@ A dependency-free, single-page weather app that shows current conditions and a 5
 
 SKY is a static front-end weather application built entirely with vanilla HTML, CSS, and JavaScript (ES modules). It loads the current conditions and a five-day outlook for a place — using the browser's current location when permitted, a previously saved city or coordinates on later visits, or a city typed into the search box.
 
-The technical approach is deliberately minimal: a small set of modular ES modules with no framework, no bundler, and no runtime dependencies. All weather and geocoding data comes from OpenWeatherMap. Because there is no backend, the API key lives in a local configuration file that is meant to be gitignored rather than hard-coded in the source. See [API & Configuration](#7-api--configuration) and [Security Notes](#12-security-notes) for the important caveats.
+The technical approach is deliberately minimal: a small set of modular ES modules with no framework, no bundler, and no runtime dependencies, plus a single small Vercel serverless function (`api/openweather.js`) that fronts the OpenWeatherMap API so the API key stays server-side. All weather and geocoding data comes from OpenWeatherMap via that proxy. See [API & Configuration](#api--configuration) and [Security Notes](#security-notes) for details.
 
 ## Features
 
@@ -42,7 +42,9 @@ SKY App (js/app.js)
   ↓
 Geolocation  OR  Saved city/coords  OR  City search
   ↓
-OpenWeatherMap API (js/api.js)
+Vercel serverless proxy (api/openweather.js) → injects OPENWEATHER_API_KEY
+  ↓
+OpenWeatherMap API
   ↓
 Current weather + 5-day forecast
   ↓
@@ -62,16 +64,17 @@ Rendering (js/ui.js) → on-screen weather content
 ```
 SKY/
 ├── .gitignore
+├── .env.example
 ├── README.md
 ├── index.html
+├── api/
+│   └── openweather.js      ← Vercel serverless proxy (injects the API key server-side)
 ├── css/
 │   └── style.css
 └── js/
     ├── app.js
     ├── api.js
     ├── config.js
-    ├── config.local.example.js
-    ├── config.local.js        ← local config (listed in .gitignore)
     ├── icons.js
     └── ui.js
 ```
@@ -80,10 +83,9 @@ Key files:
 
 - **`index.html`** — application markup, SEO/Open Graph metadata, loading/error/weather states, and the entry `<script type="module" src="./js/app.js">`.
 - **`js/app.js`** — bootstrap and orchestration: initializes the UI, debounces and drives the search/autocomplete, handles geolocation, coordinates, and fallback, and fetches + persists weather.
-- **`js/api.js`** — thin wrapper around the OpenWeatherMap endpoints (current weather, forecast, geocoding), including error mapping for non-OK responses.
-- **`js/config.js`** — central configuration (base URLs, units, language, debounce delay, storage keys); imports the API key from `js/config.local.js`.
-- **`js/config.local.example.js`** — template for the local, gitignored key file (see [Getting Started](#8-getting-started)).
-- **`js/config.local.js`** — local, keyed configuration file (see [Git tracking note](#12-security-notes)).
+- **`js/api.js`** — thin wrapper around the OpenWeatherMap endpoints (current weather, forecast, geocoding), routed through the serverless proxy, including error mapping for non-OK responses.
+- **`js/config.js`** — central configuration (proxy URL, units, language, debounce delay, storage keys).
+- **`api/openweather.js`** — Vercel serverless function that proxies OpenWeatherMap requests and injects the API key from the `OPENWEATHER_API_KEY` environment variable; the key never reaches the browser.
 - **`js/icons.js`** — original inline SVG weather icons and the mapping from OpenWeatherMap condition codes (plus day/night) to those icons.
 - **`js/ui.js`** — DOM rendering: current weather, 5-day forecast, suggestions listbox, and loading/error states.
 - **`css/style.css`** — all styling: design tokens, glassmorphism surfaces, grid/flex layout, and responsive media queries.
@@ -100,12 +102,14 @@ SKY uses OpenWeatherMap and requires an account with an API key. It calls three 
 
 The application also passes `units=metric` (Celsius) and `lang=en` on weather and forecast requests.
 
-The API key is **not** hard-coded in the main source. `js/config.js` imports it from `js/config.local.js`, which is listed in `.gitignore`. The setup workflow is:
+The API key handling is environment-aware, with the decision isolated in `js/config.js` and `js/api.js`:
 
-1. Copy `js/config.local.example.js` to `js/config.local.js`.
-2. Replace the placeholder `YOUR_OPENWEATHERMAP_API_KEY` with your own key.
+- **Vercel (production):** the key is **not** stored in the frontend at all. `js/api.js` calls the small Vercel serverless function (`api/openweather.js`), which reads the key from the `OPENWEATHER_API_KEY` environment variable, appends it as the `appid` parameter server-side, and relays the response. The browser never sees the key and never requests `js/config.local.js`.
+- **Local static-server development** (VS Code Live Server, `python3 -m http.server`, etc.): there is no serverless runtime, so on `localhost`/`127.0.0.1` the app calls OpenWeatherMap directly using the key from the gitignored `js/config.local.js`. **A client-side key is not secret** — it is visible to anyone inspecting network requests in the browser; this only keeps it out of source control.
 
-> **Important:** API keys in a client-side application can never be truly secret — a key shipped to the browser is visible to anyone who inspects network requests. Local configuration only keeps it out of source control. The template (`js/config.local.example.js`) ships with a placeholder, but the repository's tracked `js/config.local.js` currently holds a real key value that must be treated as compromised. See [Security Notes](#12-security-notes) for the current tracking situation.
+**Vercel setup:** in your Vercel project, set an environment variable `OPENWEATHER_API_KEY` (Production, Preview, and Development scopes) to your OpenWeatherMap key, then redeploy. No other configuration is needed — Vercel auto-detects the `api/` directory and serves the project as a static site plus serverless function.
+
+> **Note:** OpenWeatherMap rejects requests to `api.openweathermap.org` without a key, and the proxy forwards the upstream HTTP status, so a missing or invalid key surfaces as an on-screen `API Error: 401` rather than a silent failure.
 
 ## Getting Started
 
@@ -118,25 +122,45 @@ cd sky
 
 ### Configuration
 
+Two setup paths, matching the two run modes below:
+
+**Local static-server development** (VS Code Live Server, etc.) uses a local key file:
+
 ```shell
 cp js/config.local.example.js js/config.local.js
 ```
 
-Then edit `js/config.local.js` and replace the placeholder with your OpenWeatherMap API key.
+Then edit `js/config.local.js` and replace the placeholder with your OpenWeatherMap API key. `js/config.local.js` is listed in `.gitignore` and must never be committed. Note that this key is shipped to the browser and is therefore **not secret** (visible in network requests).
+
+**Vercel CLI development and production** use an environment variable instead:
+
+```shell
+cp .env.example .env
+```
+
+Edit `.env` with your key (gitignored, never commit it), and set the same `OPENWEATHER_API_KEY` variable in your Vercel project's environment settings (see [API & Configuration](#api--configuration)). With this workflow no key ever reaches the browser.
 
 ### Run
 
-This is a static ES-module application, so it must be served over HTTP — the `file://` protocol will not load ES modules correctly. Pick one option:
+**Option A — simple static server (frontend work):** VS Code Live Server, or:
 
 ```shell
-# Option A: Python's built-in server
 python3 -m http.server
-
-# Option B: Node's tiny static server
+# or
 npx serve .
 ```
 
-Then open the printed local URL (for example `http://localhost:8000`) in a browser.
+Requires `js/config.local.js` (see Configuration above). Requests go directly to OpenWeatherMap — no serverless function is involved. If the file is missing, the app boots but API calls fail.
+
+**Option B — Vercel CLI (tests the serverless proxy locally):**
+
+```shell
+npx vercel dev
+```
+
+Loads `.env` and runs the `api/openweather.js` function locally, mirroring production. Requires `.env` (see Configuration above). On the printed local URL (e.g. `http://localhost:3000`) the app detects localhost and — if `js/config.local.js` exists — will use it directly; remove that file if you want to exercise the proxy path locally.
+
+Serving the app from a non-localhost origin without the serverless function is not supported: `/api/openweather` only exists under Vercel (or `vercel dev`).
 
 ## Browser / Compatibility Notes
 
@@ -175,13 +199,11 @@ The code makes several concrete performance choices:
 
 ## Security Notes
 
-- The API key is loaded from a local configuration file (`js/config.local.js`), keeping it out of the main source modules.
-- `js/config.local.js` is listed in `.gitignore`, and `.gitignore` is present at the repository root. **However, `config.local.js` is currently still tracked by Git** — a gitignore rule does not untrack a file that was committed earlier. Until it is removed from tracking (`git rm --cached js/config.local.js`), it will keep appearing in the repository, and any key value it currently contains must be treated as compromised and rotated.
-- Client-side API keys are still exposed to end users through network requests — local configuration alone does not make a key secret.
-- For production, restrict the key in the OpenWeatherMap dashboard (HTTP-referrer allow-list and/or rate limits).
-- Any API key previously committed to Git history remains there indefinitely and requires rotation and, if necessary, history cleanup.
-
-No API key value is reproduced in this README.
+- The API key is **never** sent to the browser. All OpenWeatherMap requests go through the `api/openweather.js` serverless function, which reads the key from the `OPENWEATHER_API_KEY` environment variable and injects it server-side.
+- The key is provided via environment variables: `OPENWEATHER_API_KEY` in Vercel for production, and a gitignored `.env` file for local development (`npx vercel dev`). `.env` is listed in `.gitignore`.
+- `js/config.local.js` is also still listed in `.gitignore`. **Important:** any API key previously committed to Git (the old `js/config.local.js`) remains in Git history indefinitely and must be treated as compromised — rotate it on the OpenWeatherMap dashboard, and run `git rm --cached js/config.local.js` if it is still tracked locally.
+- The proxy allowlists only the three OpenWeatherMap paths the app uses (`data/2.5/weather`, `data/2.5/forecast`, `geo/1.0/direct`) and only known query parameters, so it cannot be abused as a general open proxy.
+- Even with the key server-side, the OpenWeatherMap API usage itself is visible to users (they can see requests to your proxy endpoint). Restrict and monitor the key on the OpenWeatherMap dashboard (rate limits) as additional protection.
 
 ## Testing / Verification
 
@@ -189,12 +211,12 @@ The repository contains **no automated test suite** — no unit, integration, or
 
 ## Known Limitations
 
-- Client-side API key exposure (no backend to protect it).
+- Proxy endpoint adds a small amount of latency compared to direct OpenWeatherMap calls.
 - Dependency on OpenWeatherMap service availability and free-tier rate limits.
 - Reliance on browser geolocation permission and a secure context; denied/unsupported access degrades to saved city/coords or a search prompt.
-- No backend and no build tooling, so there is no server-side templating or offline packaging.
+- No build tooling, so there is no server-side templating or offline packaging.
 - No automated browser/unit test suite.
-- `js/config.local.js` is still tracked by Git despite the `.gitignore` rule, so the intended local-config workflow is not fully in effect until that file is untracked and any committed key is rotated.
+- Any API key previously committed to Git history (the old `js/config.local.js`) must be rotated.
 
 ## Future Improvements
 

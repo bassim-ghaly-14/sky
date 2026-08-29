@@ -2,8 +2,6 @@ import API from './api.js';
 import UI from './ui.js';
 import { CONFIG } from './config.js';
 
-const PLACEHOLDER_KEY = 'YOUR_OPENWEATHERMAP_API_KEY';
-
 class App {
   constructor() {
     this.searchInput = null;
@@ -24,18 +22,6 @@ class App {
   init() {
     // important: initialize UI after DOM is ready
     UI.init();
-
-    if (CONFIG.API_KEY === PLACEHOLDER_KEY) {
-      UI.showError(
-        'Add your OpenWeatherMap API key in js/config.local.js to use SKY (copy js/config.local.example.js and see the README).'
-      );
-      // Still bind events so the app becomes usable the moment a real
-      // key is added and the page is reloaded — but skip the initial
-      // weather fetch, which would only fail with a confusing 401.
-      this.bindDom();
-      this.bindEvents();
-      return;
-    }
 
     this.bindDom();
     this.bindEvents();
