@@ -9,6 +9,11 @@
 // known parameters, appends the secret appid, and relays the upstream
 // response (including its HTTP status) back unchanged.
 
+// NOTE: The environment-variable check is intentionally placed BEFORE the
+// path-validation check. If it came after, a missing key would look like a
+// 400 "Invalid API path" on every request and could be mistaken for a routing
+// bug instead of the missing OPENWEATHER_API_KEY configuration it really is.
+
 const ALLOWED_PATHS = new Set([
   'data/2.5/weather',
   'data/2.5/forecast',
