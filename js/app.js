@@ -4,16 +4,11 @@ import { CONFIG } from './config.js';
 
 class App {
   searchInput = null;
-  suggestions = null;
   debounceTimer = null;
 
   // Guards against out-of-order debounced search responses (a slow
   // earlier request resolving after a faster later one).
   searchSeq = 0;
-
-  // Keyboard navigation state for the suggestions listbox.
-  activeSuggestionIndex = -1;
-  currentLocations = [];
 
   constructor() {
     this.init();
@@ -30,7 +25,6 @@ class App {
 
   bindDom() {
     this.searchInput = document.getElementById('search-input');
-    this.suggestions = document.getElementById('search-suggestions');
   }
 
   bindEvents() {
@@ -39,70 +33,33 @@ class App {
 
       const query = e.target.value.trim();
 
+      // If the current value exactly matches a suggestion label, the user
+      // picked (or typed) an existing option — resolve it to coordinates
+      // and stop, so we don't send a redundant geocoding request for a
+      // city we already know.
+      const match = UI.getOptionByValue(query);
+      if (match) {
+        this.selectOption(match);
+        return;
+      }
+
       this.debounceTimer = setTimeout(() => {
         if (query) this.handleSearch(query);
-        else this.closeSuggestions();
+        else UI.closeSuggestions();
       }, CONFIG.DEBOUNCE_DELAY);
     });
 
-    this.searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e));
-
-    this.suggestions.addEventListener('click', (e) => {
-      const item = e.target.closest('.search__suggestion');
-      if (!item) return;
-
-      this.selectSuggestion(item);
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search')) {
-        this.closeSuggestions();
+    this.searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        // Dismiss the (native) suggestion popup / any status message.
+        UI.closeSuggestions();
       }
     });
   }
 
-  handleSearchKeydown(e) {
-    const count = UI.getSuggestionCount();
-
-    if (e.key === 'Escape') {
-      if (!this.suggestions.hidden) {
-        e.stopPropagation();
-        this.closeSuggestions();
-      }
-      return;
-    }
-
-    if (this.suggestions.hidden || count === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      this.activeSuggestionIndex = (this.activeSuggestionIndex + 1) % count;
-      UI.highlightSuggestion(this.activeSuggestionIndex);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      this.activeSuggestionIndex =
-        (this.activeSuggestionIndex - 1 + count) % count;
-      UI.highlightSuggestion(this.activeSuggestionIndex);
-    } else if (e.key === 'Enter') {
-      if (this.activeSuggestionIndex < 0) return;
-      e.preventDefault();
-      const item = this.suggestions.querySelector(
-        `.search__suggestion[data-index="${this.activeSuggestionIndex}"]`
-      );
-      if (item) this.selectSuggestion(item);
-    }
-  }
-
-  selectSuggestion(item) {
-    this.fetchWeatherByCoords(item.dataset.lat, item.dataset.lon);
-    this.searchInput.value = item.textContent.trim();
-    this.closeSuggestions();
-  }
-
-  closeSuggestions() {
+  selectOption(option) {
+    this.fetchWeatherByCoords(option.getAttribute('data-lat'), option.getAttribute('data-lon'));
     UI.closeSuggestions();
-    this.activeSuggestionIndex = -1;
-    this.currentLocations = [];
   }
 
   async handleSearch(query) {
@@ -114,9 +71,6 @@ class App {
       // A newer search has started since this one was sent — ignore
       // this now-stale response instead of overwriting fresher results.
       if (seq !== this.searchSeq) return;
-
-      this.activeSuggestionIndex = -1;
-      this.currentLocations = locations;
 
       if (locations?.length) {
         UI.renderSuggestions(locations);

@@ -26,6 +26,7 @@ class UI {
       errorMessage: document.querySelector('.state__message'),
       content: document.getElementById('weather-content'),
       suggestions: document.getElementById('search-suggestions'),
+      searchStatus: document.getElementById('search-status'),
       searchInput: document.getElementById('search-input'),
 
       locationName: document.getElementById('location-name'),
@@ -129,79 +130,53 @@ class UI {
   }
 
   /**
-   * Renders the suggestions listbox. Each item gets a stable id
-   * (`suggestion-N`) and `role="option"` so app.js can drive keyboard
-   * navigation via aria-activedescendant.
+   * Populates the native datalist. Each <option> carries the city label as
+   * its value (so a picked option sets the input to that exact label) plus
+   * data-lat/data-lon, letting app.js resolve the chosen city to its exact
+   * coordinates without a second geocoding request.
    */
   renderSuggestions(locations) {
-    if (!locations?.length) {
-      this.elements.suggestions.hidden = true;
-      this.elements.suggestions.innerHTML = '';
-      this.elements.searchInput.setAttribute('aria-expanded', 'false');
-      this.elements.searchInput.removeAttribute('aria-activedescendant');
-      return;
-    }
+    this.elements.suggestions.innerHTML = '';
+    this.elements.searchStatus.hidden = true;
+
+    if (!locations?.length) return;
 
     this.elements.suggestions.innerHTML = locations
-      .map((loc, index) => {
+      .map((loc) => {
         const label = `${loc.name}${loc.state ? ', ' + loc.state : ''}, ${loc.country}`;
         return `
-        <div
-          id="suggestion-${index}"
-          class="search__suggestion"
-          role="option"
-          aria-selected="false"
-          data-index="${index}"
+        <option
           data-lat="${loc.lat}"
           data-lon="${loc.lon}"
-        >
-          ${escapeHtml(label)}
-        </div>
+        >${escapeHtml(label)}</option>
       `;
       })
       .join('');
-
-    this.elements.suggestions.hidden = false;
-    this.elements.searchInput.setAttribute('aria-expanded', 'true');
   }
 
-  /** Shows a non-interactive message row inside the suggestions panel (empty results, search failure). */
+  /** Shows a non-interactive message for empty results / search failure via the live status region. */
   renderSuggestionsMessage(message) {
-    this.elements.suggestions.innerHTML = `<div class="search__suggestion--message">${escapeHtml(message)}</div>`;
-    this.elements.suggestions.hidden = false;
-    this.elements.searchInput.setAttribute('aria-expanded', 'true');
-    this.elements.searchInput.removeAttribute('aria-activedescendant');
+    this.elements.suggestions.innerHTML = '';
+    this.elements.searchStatus.textContent = message;
+    this.elements.searchStatus.hidden = false;
+  }
+
+  /** Returns the datalist <option> whose label/value matches `value`, or null. */
+  getOptionByValue(value) {
+    if (!value) return null;
+
+    const options = this.elements.suggestions.options;
+
+    for (let i = 0; i < options.length; i += 1) {
+      if (options[i].value === value) return options[i];
+    }
+
+    return null;
   }
 
   closeSuggestions() {
-    this.elements.suggestions.hidden = true;
     this.elements.suggestions.innerHTML = '';
-    this.elements.searchInput.setAttribute('aria-expanded', 'false');
-    this.elements.searchInput.removeAttribute('aria-activedescendant');
-  }
-
-  /** Highlights the suggestion at `index` (or clears highlighting for -1) and updates aria-activedescendant. */
-  highlightSuggestion(index) {
-    const items = this.elements.suggestions.querySelectorAll('.search__suggestion');
-
-    items.forEach(item => {
-      item.classList.remove('search__suggestion--active');
-      item.setAttribute('aria-selected', 'false');
-    });
-
-    if (index < 0 || index >= items.length) {
-      this.elements.searchInput.removeAttribute('aria-activedescendant');
-      return;
-    }
-
-    const active = items[index];
-    active.classList.add('search__suggestion--active');
-    active.setAttribute('aria-selected', 'true');
-    this.elements.searchInput.setAttribute('aria-activedescendant', active.id);
-  }
-
-  getSuggestionCount() {
-    return this.elements.suggestions.querySelectorAll('.search__suggestion').length;
+    this.elements.searchStatus.hidden = true;
   }
 }
 

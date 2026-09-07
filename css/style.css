@@ -139,11 +139,13 @@ body {
     0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
-.search__suggestions {
+.search__status {
   position: absolute;
   top: calc(100% + 12px);
   left: 0;
   right: 0;
+
+  padding: 14px 18px;
 
   background: rgba(15, 23, 42, 0.88);
 
@@ -151,31 +153,11 @@ body {
 
   border-radius: var(--radius);
 
-  overflow: hidden;
+  color: var(--text-secondary);
 
   z-index: 100;
 
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-
   box-shadow: var(--shadow);
-}
-
-.search__suggestion {
-  padding: 14px 18px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.search__suggestion:hover,
-.search__suggestion--active {
-  background: rgba(56, 189, 248, 0.12);
-}
-
-.search__suggestion--message {
-  padding: 14px 18px;
-  color: var(--text-secondary);
-  cursor: default;
 }
 
 /* ===== Weather Content ===== */

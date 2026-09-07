@@ -23,9 +23,11 @@ const IS_LOCAL_DEV =
 // NOTE: this deliberately uses a promise (configReady) instead of
 // top-level await. Top-level await is newer than ES modules themselves
 // (Chrome 89+/Safari 15+) and a module graph containing it fails to
-// evaluate AT ALL in older browsers — silently killing app.js before
+// evaluate AT ALL in those browsers — silently killing app.js before
 // it can register any listeners (a "dead page"). import() alone works
 // in every ES-module browser, and the API layer simply awaits readiness.
+// (SonarCloud's S7785 "prefer top-level await" rule is intentionally not
+// applied here: it is incompatible with this project's browser baseline.)
 export const CONFIG = {
   // The serverless proxy that fronts the OpenWeatherMap APIs (Vercel).
   API_PROXY_URL: '/api/openweather',
@@ -53,10 +55,7 @@ export const CONFIG = {
   }
 };
 
-// Applies local configuration (if any) to CONFIG.API_KEY. Written as an
-// async helper that awaits the import (instead of a top-level promise
-// chain) so the code reads as plain await, while still deliberately NOT
-// using top-level await — see the NOTE above for why.
+// Applies local configuration (if any) to CONFIG.API_KEY.
 async function applyLocalConfig() {
   try {
     const m = await import('./config.local.js');

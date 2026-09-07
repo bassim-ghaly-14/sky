@@ -112,19 +112,22 @@
           placeholder="Search for a city or country..."
           autocomplete="off"
           aria-label="Search for a city"
-          role="combobox"
-          aria-expanded="false"
-          aria-controls="search-suggestions"
-          aria-autocomplete="list"
+          list="search-suggestions"
         >
 
-        <div
-          id="search-suggestions"
-          class="search__suggestions"
-          role="listbox"
-          aria-label="City suggestions"
+        <!-- Native autocomplete suggestions; <option> elements (carrying the
+             latitude/longitude) are populated by js/ui.js. -->
+        <datalist id="search-suggestions"></datalist>
+
+        <!-- Non-interactive search feedback (no results / request failure);
+             announced politely. Hidden until a message needs to be shown. -->
+        <p
+          id="search-status"
+          class="search__status"
+          role="status"
+          aria-live="polite"
           hidden
-        ></div>
+        ></p>
       </div>
     </header>
 

@@ -13,13 +13,13 @@ The technical approach is deliberately minimal: a small set of modular ES module
 - **Current weather** — temperature (°C), condition description, humidity, and wind speed (m/s) for the selected city.
 - **5-day forecast** — one entry per day derived from the noon (`12:00:00`) observations of the 3-hour forecast, each with a weekday label, an icon, and a rounded temperature.
 - **Geolocation** — on first load, requests the browser location and shows its weather automatically; falls back cleanly when unavailable or denied.
-- **City search with autocomplete** — debounced (500 ms) suggestions from the OpenWeatherMap Geocoding API, requiring at least 2 characters.
+- **City search with autocomplete** — debounced (500 ms) suggestions from the OpenWeatherMap Geocoding API, requiring at least 2 characters, using a native `<datalist>`.
 - **Keyboard-accessible suggestions** — Arrow Up/Down navigate the listbox, Enter selects, and Escape closes it.
 - **Persistence & fallback** — remembers the last searched city and last known coordinates in `localStorage`; used when geolocation is denied or unavailable.
 - **Loading & error states** — a skeleton placeholder while fetching and clear on-screen messages, including a prompt to add an API key when none is configured and a "city not found" message for bad searches.
 - **Responsive layout** — CSS Grid, Flexbox, and media queries for mobile, tablet, and desktop.
 - **Original inline SVG weather icons** — no icon font, no external icon requests; condition codes are mapped to icons including day/night variants.
-- **Accessibility baseline** — semantic markup, a hidden page heading, ARIA combobox/listbox roles, a driven `aria-activedescendant`, and live status regions (details in [Accessibility](#10-accessibility)).
+- **Accessibility baseline** — semantic markup, a hidden page heading, a native `<datalist>` city search, and live status regions (details in [Accessibility](#10-accessibility)).
 
 ## Tech Stack
 
@@ -180,8 +180,8 @@ Accessibility work present in the code:
 
 - A visually hidden page heading (`<h1 class="sr-only">SKY Weather</h1>`).
 - Semantic landmarks (`<header>`, `<main>`, `<section>`), a labeled search input, and `aria-hidden="true"` on decorative weather icons.
-- A search input with `role="combobox"`, `aria-expanded`, `aria-controls`, and `aria-autocomplete="list"`, wired to a `role="listbox"` of `role="option"` items.
-- Keyboard navigation in the listbox — Arrow Up/Down move the highlight, driven through `aria-activedescendant`; Enter selects; Escape closes.
+- A search input wired to a native `<datalist>` (`list="search-suggestions"`) whose `<option>` elements carry the city's latitude/longitude, so keyboard and pointer selection are handled by the browser.
+- Search feedback (no results / request failure) is announced via a `role="status"` live region.
 - Loading and error states use native `<output>` elements (implicit `role="status"` with `aria-live="polite"`) so screen readers announce them.
 - User-provided values (suggestion labels and messages) are HTML-escaped before insertion.
 
