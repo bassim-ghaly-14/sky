@@ -167,8 +167,8 @@ class UI {
 
     const options = this.elements.suggestions.options;
 
-    for (let i = 0; i < options.length; i += 1) {
-      if (options[i].value === value) return options[i];
+    for (const option of options) {
+      if (option.value === value) return option;
     }
 
     return null;

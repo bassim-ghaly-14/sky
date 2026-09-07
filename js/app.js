@@ -58,7 +58,7 @@ class App {
   }
 
   selectOption(option) {
-    this.fetchWeatherByCoords(option.getAttribute('data-lat'), option.getAttribute('data-lon'));
+    this.fetchWeatherByCoords(option.dataset.lat, option.dataset.lon);
     UI.closeSuggestions();
   }
 

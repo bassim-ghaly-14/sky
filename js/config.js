@@ -70,6 +70,9 @@ async function applyLocalConfig() {
 
 // Resolves once local configuration (if any) has been applied to
 // CONFIG.API_KEY. js/api.js awaits this before building request URLs.
+// NOSONAR(S7785): top-level await would break module-graph evaluation in
+// ES-module browsers that predate TLA support (Chrome <89, Safari <15) —
+// see the NOTE above. The promise pattern is required for compatibility.
 export const configReady = IS_LOCAL_DEV
-  ? applyLocalConfig()
+  ? applyLocalConfig() // NOSONAR: promise-based init is deliberate (S7785)
   : Promise.resolve();
