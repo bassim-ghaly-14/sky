@@ -53,17 +53,24 @@ export const CONFIG = {
   }
 };
 
+// Applies local configuration (if any) to CONFIG.API_KEY. Written as an
+// async helper that awaits the import (instead of a top-level promise
+// chain) so the code reads as plain await, while still deliberately NOT
+// using top-level await — see the NOTE above for why.
+async function applyLocalConfig() {
+  try {
+    const m = await import('./config.local.js');
+    CONFIG.API_KEY = m.API_KEY || null;
+  } catch {
+    // js/config.local.js missing or unreadable — see README setup.
+    // CONFIG.API_KEY stays null; js/api.js surfaces a clear setup
+    // error instead of leaving the app in a silent proxy mode.
+    CONFIG.API_KEY = null;
+  }
+}
+
 // Resolves once local configuration (if any) has been applied to
 // CONFIG.API_KEY. js/api.js awaits this before building request URLs.
 export const configReady = IS_LOCAL_DEV
-  ? import('./config.local.js')
-      .then((m) => {
-        CONFIG.API_KEY = m.API_KEY || null;
-      })
-      .catch(() => {
-        // js/config.local.js missing or unreadable — see README setup.
-        // CONFIG.API_KEY stays null; js/api.js surfaces a clear setup
-        // error instead of leaving the app in a silent proxy mode.
-        CONFIG.API_KEY = null;
-      })
+  ? applyLocalConfig()
   : Promise.resolve();
