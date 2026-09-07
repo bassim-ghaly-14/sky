@@ -66,7 +66,11 @@ export default async function handler(req, res) {
       .status(response.status)
       .setHeader('Content-Type', 'application/json')
       .send(body);
-  } catch (err) {
+  } catch {
+    // The upstream failure is intentionally surfaced as a generic 502
+    // without forwarding the underlying error details to the client
+    // (which could leak internal/network information). The 502 response
+    // is the meaningful recovery for a failed OpenWeatherMap request.
     res.status(502).json({ message: 'Upstream request to OpenWeatherMap failed' });
   }
 }

@@ -132,27 +132,25 @@
     <main class="app__main">
 
       <!-- Loading State -->
-      <div
+      <output
         id="loading"
         class="state state--loading"
-        role="status"
         aria-live="polite"
         hidden
       >
         <span class="sr-only">Loading weather…</span>
         <div class="skeleton"></div>
-      </div>
+      </output>
 
       <!-- Error State -->
-      <div
+      <output
         id="error"
         class="state state--error"
-        role="status"
         aria-live="polite"
         hidden
       >
-        <p class="state__message"></p>
-      </div>
+        <span class="state__message"></span>
+      </output>
 
       <!-- Weather Content -->
       <section

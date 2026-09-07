@@ -182,7 +182,7 @@ Accessibility work present in the code:
 - Semantic landmarks (`<header>`, `<main>`, `<section>`), a labeled search input, and `aria-hidden="true"` on decorative weather icons.
 - A search input with `role="combobox"`, `aria-expanded`, `aria-controls`, and `aria-autocomplete="list"`, wired to a `role="listbox"` of `role="option"` items.
 - Keyboard navigation in the listbox — Arrow Up/Down move the highlight, driven through `aria-activedescendant`; Enter selects; Escape closes.
-- Loading and error states use `role="status"` with `aria-live="polite"` so screen readers announce them.
+- Loading and error states use native `<output>` elements (implicit `role="status"` with `aria-live="polite"`) so screen readers announce them.
 - User-provided values (suggestion labels and messages) are HTML-escaped before insertion.
 
 The UI is largely keyboard-operable and screen-reader-aware, but it has **not** been formally audited against WCAG and no automated accessibility tooling runs in the project.

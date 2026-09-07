@@ -134,7 +134,7 @@ class UI {
    * navigation via aria-activedescendant.
    */
   renderSuggestions(locations) {
-    if (!locations || !locations.length) {
+    if (!locations?.length) {
       this.elements.suggestions.hidden = true;
       this.elements.suggestions.innerHTML = '';
       this.elements.searchInput.setAttribute('aria-expanded', 'false');

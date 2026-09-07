@@ -3,19 +3,19 @@ import UI from './ui.js';
 import { CONFIG } from './config.js';
 
 class App {
+  searchInput = null;
+  suggestions = null;
+  debounceTimer = null;
+
+  // Guards against out-of-order debounced search responses (a slow
+  // earlier request resolving after a faster later one).
+  searchSeq = 0;
+
+  // Keyboard navigation state for the suggestions listbox.
+  activeSuggestionIndex = -1;
+  currentLocations = [];
+
   constructor() {
-    this.searchInput = null;
-    this.suggestions = null;
-    this.debounceTimer = null;
-
-    // Guards against out-of-order debounced search responses (a slow
-    // earlier request resolving after a faster later one).
-    this.searchSeq = 0;
-
-    // Keyboard navigation state for the suggestions listbox.
-    this.activeSuggestionIndex = -1;
-    this.currentLocations = [];
-
     this.init();
   }
 
@@ -118,7 +118,7 @@ class App {
       this.activeSuggestionIndex = -1;
       this.currentLocations = locations;
 
-      if (locations && locations.length) {
+      if (locations?.length) {
         UI.renderSuggestions(locations);
       } else {
         UI.renderSuggestionsMessage('No matching cities found');
@@ -165,7 +165,11 @@ class App {
     try {
       const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.LAST_COORDS);
       return raw ? JSON.parse(raw) : null;
-    } catch (err) {
+    } catch {
+      // Reading or parsing the persisted coordinates can fail (e.g.
+      // storage disabled in privacy mode, or corrupt JSON). This is
+      // non-critical: returning null simply falls through to the
+      // "search for a city" prompt, so the error is intentionally ignored.
       return null;
     }
   }
